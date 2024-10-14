@@ -5,9 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Hash;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-
-
 
 class AuthController extends Controller
 {
@@ -17,51 +14,48 @@ class AuthController extends Controller
             "name" => "required|max:255",
             "email" => "required|email|unique:users",
             "password" => "required|confirmed",
-             "role" => "required|in:host,attendee"
+            "role" => "required|in:host,attendee"
         ]);
-        if ($data){
+        if ($data) {
             $user = User::create($data);
 
-            $user->assignRole($data['role']); 
+            $user->assignRole($data['role']);
             $token = $user->createToken($request->name);
-            // return [
-            //     'user' =>$user,
-            //     'token' => $token->plainTextToken,
-            //     'role'=> $user->getRoleNames()
-            // ]; 
             return [
-                'user' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    // 'role' => $user->roles[0]->name
-                ],
+                'user' => $user,
                 'token' => $token->plainTextToken,
-            ];    
-        }
-       
-        
-    }
-
-    public function login(Request $request)
-    {
-        $data = $request->validate([
-            "email" => "required|exists:users",
-            "password" => "required"
-        ]);
-        $user = User::where("email", $request->email)->first();
-        $token = $user->createToken($user->name);
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return [
-                "errors" => [
-                    "Invalid Credentials"
-                ]
+                'role' => $user->getRoleNames()
             ];
         }
 
+
+    }
+    public function login(Request $request)
+    {
+        $request->validate([
+            "email" => "required|exists:users,email",
+            "password" => "required"
+        ]);
+
+        // Retrieve user
+        $user = User::where("email", $request->email)->first();
+
+        // Check password
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                "errors" => [
+                    "email" => ["Invalid Credentials"]
+                ]
+            ], 401);
+        }
+
+        // Generate token after successful login
+        $token = $user->createToken($user->name);
+
         return [
             'user' => $user,
-            'token' => $token->plainTextToken
+            'token' => $token->plainTextToken,
+            'role' => $user->getRoleNames()->isNotEmpty() ? $user->getRoleNames()[0] : null,
         ];
     }
 
