@@ -24,7 +24,7 @@ class AuthController extends Controller
             return [
                 'user' => $user,
                 'token' => $token->plainTextToken,
-                'role' => $user->getRoleNames()
+                'role' => $user->getRoleNames()->isNotEmpty() ? $user->getRoleNames()[0] : null,
             ];
         }
 
