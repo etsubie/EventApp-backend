@@ -1,30 +1,41 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\Categories;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CategoryContoller extends Controller
 {
+    public function index()
+    {
+
+            $categories = Category::all();
+
+            return response()->json([
+                'message' => 'Categories retrieved successfully',
+                'categories' => $categories,
+            ], 200);
+
+    }
+
     public function store(Request $request)
     {
-        // Validate the request
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-        if (!Auth::user()->can('create events')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-        // Create a new category
-        $category = Categories::create([
-            'name' => $request->name,
+        $data = $request->validate([
+            'name' => 'required|unique:categories|max:255',
         ]);
 
-        // Return a response
+        if (Auth::user()->can('create events')) {
+            $category = Category::create($data);
+
+            return response()->json([
+                'message' => 'Category created successfully',
+                'category' => $category,
+            ], 201);
+        }
+
         return response()->json([
-            'message' => 'Category created successfully',
-            'category' => $category,
-        ], 201);
+            'message' => 'Unauthorized',
+        ], 403);
     }
 }

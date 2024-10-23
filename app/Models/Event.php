@@ -14,22 +14,25 @@ class Event extends Model
         'description',
         'category_id', 
         'location',
-        'event_date',
         'start_date',
         'end_date',
         'ticket_price',
         'status',
         'capacity',
-        'imgUrl'
+        // 'imgUrl'
     ];
 
     // Define the many-to-one relationship with category
     public function category()
     {
-        return $this->belongsTo(Categories::class);
+        return $this->belongsTo(Category::class);
+    }
+    public function approvals()
+    {
+        return $this->hasMany(EventApproval::class);
     }
 
-    public function host()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

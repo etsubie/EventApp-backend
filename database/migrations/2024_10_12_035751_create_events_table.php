@@ -18,13 +18,11 @@ return new class extends Migration {
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('location');
-            $table->dateTime('event_date');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->decimal('ticket_price');
             $table->integer('capacity');
-            $table->string('imgUrl');
-            $table->enum('status', ['approved', 'pending', 'rejected'])->default('pending');
+            // $table->string('imgUrl');
 
         });
     }
