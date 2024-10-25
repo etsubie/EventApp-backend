@@ -23,7 +23,7 @@ class EventFactory extends Factory
             'end_date' => $this->faker->dateTimeBetween('+1 week', '+1 year'), 
             'ticket_price' => $this->faker->randomFloat(2, 10, 1000), 
             'capacity' => $this->faker->numberBetween(1, 1000), 
-            // 'imgUrl' => $this->faker->imageUrl(), // Generates a random image URL
+            'image' => $this->faker->imageUrl(), // Generates a random image URL
         ];
     }
 }

@@ -27,12 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Management
     Route::middleware('permission:view users')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
-        Route::get('/users/{user}', [UserController::class, 'show']);
     });
-    Route::middleware('permission:manage users')->group(function () {
-        Route::patch('/users/{user}', [UserController::class, 'update']);
-        Route::delete('/users/{user}', [UserController::class, 'destroy']);
-    });
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::patch('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
     
     // Event Management
     Route::middleware('permission:view events')->group(function () {
@@ -58,8 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::middleware('permission:view booked events')->group(function () {
         Route::get('/booked', [BookingController::class, 'showBooked'])    ;
+        Route::get('/booked-events', [BookingController::class, 'index']);
     });
     
-    // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index']);
 });

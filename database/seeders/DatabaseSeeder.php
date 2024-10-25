@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
 
         // Create a user and assign the 'admin' role
         $user = User::factory()->create([
-            'name' => 'Etsub',
+            'name' => 'ADMIN',
             'email' => 'test@example.com',
             'password' => bcrypt('12345'), 
         ]);

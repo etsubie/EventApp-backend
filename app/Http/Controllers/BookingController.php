@@ -3,42 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Notifications\EventNotification;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
 {
+    public function index(Request $request) {
+        // Retrieve all bookings with their associated events
+        $booked = Booking::with('event')->get();
+        
+        return response()->json($booked, 200);
+    }    
+    
     public function confirmBooking(Request $request)
     {
-        // Check if the user has permission to book events
-        if (!Auth::user()->can('book events')) {
+        $user = Auth::user();
+    
+        if (!$user->can('book events')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        // Find the event by ID
+    
         $event = Event::find($request->event_id);
         if (!$event) {
             return response()->json(['message' => 'Event not found'], 404);
         }
-
-        // Calculate the current number of bookings
+    
         $currentBookingsCount = $event->bookings()->count();
         $remainingCapacity = $event->capacity - $currentBookingsCount;
-
-        // Check if there is capacity available
+    
         if ($remainingCapacity <= 0) {
             return response()->json(['message' => 'No capacity available for this event'], 400);
         }
-
-        // Store the booking after successful payment
+    
         $booking = Booking::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'event_id' => $event->id,
         ]);
-
-        return response()->json(['message' => 'Booking successful', 'booking' => $booking]);
-    }
+    
+        Notification::send($user, new EventNotification($event, 'booking'));
+    
+        return response()->json(['message' => 'Booking successful', 'booking' => $booking], 200);
+    }    
 
     public function myBooked(Request $request)
     {

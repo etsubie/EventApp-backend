@@ -53,6 +53,7 @@ class EventController extends Controller
     }
     public function store(Request $request)
     {
+        // Validate the incoming request data
         $data = $request->validate([
             "title" => "required|max:255",
             "description" => "required",
@@ -62,25 +63,50 @@ class EventController extends Controller
             "end_date" => "required|date|after_or_equal:start_date",
             "ticket_price" => "required|numeric",
             "capacity" => "required|integer",
+            "image" => "nullable|string" // Expect Base64 string for the image
         ]);
-
+    
+        // Format the start and end dates
         $data['start_date'] = \Carbon\Carbon::parse($data['start_date'])->format('Y-m-d H:i:s');
         $data['end_date'] = \Carbon\Carbon::parse($data['end_date'])->format('Y-m-d H:i:s');
-
-        if (!Auth::user()->can('create events')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+    
+        // Handle Base64 image decoding
+        if ($request->has('image') && $request->image) {
+            $image = $request->image; // Base64 encoded image
+        
+            // Extract MIME type and Base64 data
+            preg_match('/^data:image\/(\w+);base64,/', $image, $type);
+            if (empty($type[1])) {
+                throw new \Exception('Invalid image type');
+            }
+        
+            // Create a dynamic file extension based on the MIME type
+            $extension = $type[1]; // jpg ,png....
+            $imageName = 'event_image_' . time() . '.' . $extension; // Dynamically set the extension
+        
+            // Remove the Base64 header part
+            $image = str_replace('data:image/' . $extension . ';base64,', '', $image);
+            $image = str_replace(' ', '+', $image);
+        
+            // Decode and store the image
+            \File::put(public_path('images/') . $imageName, base64_decode($image));
+        
+            // Add the image path to the $data array
+            $data['image'] = 'images/' . $imageName;
         }
-
+        
+        // Assign the authenticated user's ID to the user_id field
         $data['user_id'] = Auth::id();
-        $data['category_id'];
-
+    
         $event = Event::create($data);
-
+    
+        // Return a success response with the created event
         return response()->json([
             'message' => 'Event created successfully',
             'event' => $event,
         ], 201);
     }
+    
 
     public function show($id)
     {
@@ -110,11 +136,13 @@ class EventController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Event not found'], 404);
         }
-
+    
+        // Check for event management permission
         if (!Auth::user()->can('manage events')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
+    
+        // Validate the incoming request data
         $data = $request->validate([
             "title" => "required|max:255",
             "description" => "required",
@@ -124,18 +152,48 @@ class EventController extends Controller
             "end_date" => "required|date|after_or_equal:start_date",
             "ticket_price" => "required|numeric",
             "capacity" => "required|integer",
+            "image" => "nullable|string",  // Allow Base64 image strings
         ]);
-
+    
+        // Format the start and end dates
         $data['start_date'] = \Carbon\Carbon::parse($data['start_date'])->format('Y-m-d H:i:s');
         $data['end_date'] = \Carbon\Carbon::parse($data['end_date'])->format('Y-m-d H:i:s');
-
+    
+      // Handle Base64 image decoding
+      if ($request->has('image') && $request->image) {
+        $image = $request->image; // Base64 encoded image
+    
+        // Extract MIME type and Base64 data
+        preg_match('/^data:image\/(\w+);base64,/', $image, $type);
+        if (empty($type[1])) {
+            throw new \Exception('Invalid image type');
+        }
+    
+        // Create a dynamic file extension based on the MIME type
+        $extension = $type[1]; // This will be 'png', 'jpg', etc.
+        $imageName = 'event_image_' . time() . '.' . $extension; // Dynamically set the extension
+    
+        // Remove the Base64 header part
+        $image = str_replace('data:image/' . $extension . ';base64,', '', $image);
+        $image = str_replace(' ', '+', $image);
+    
+        // Decode and store the image
+        \File::put(public_path('images/') . $imageName, base64_decode($image));
+    
+        // Add the image path to the $data array
+        $data['image'] = 'images/' . $imageName;
+    }
+    
+        // Update the event with validated data
         $event->update($data);
-
+    
+        // Return a success response with the updated event
         return response()->json([
             'message' => 'Event updated successfully',
             'event' => $event,
         ]);
     }
+    
 
     public function destroy(Request $request, Event $event)
     {

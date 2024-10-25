@@ -9,7 +9,7 @@ class CategorySeeder extends Seeder
 {
     public function run()
     {
-        // Create 5 categories
-        Category::factory()->count(5)->create();
+        // Create 3 categories
+        Category::factory()->count(3)->create();
     }
 }

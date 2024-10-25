@@ -19,7 +19,7 @@ class Event extends Model
         'ticket_price',
         'status',
         'capacity',
-        // 'imgUrl'
+        'image'
     ];
 
     // Define the many-to-one relationship with category

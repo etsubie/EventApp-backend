@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->dateTime('end_date');
             $table->decimal('ticket_price');
             $table->integer('capacity');
-            // $table->string('imgUrl');
+            $table->string('image')->nullable();
 
         });
     }
