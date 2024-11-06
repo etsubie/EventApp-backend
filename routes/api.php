@@ -5,7 +5,6 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryContoller;
 use App\Http\Controllers\EventApprovalController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserGrowthControlle;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +17,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::get('/public', [EventController::class, 'events']);
 Route::get('/categories', [CategoryContoller::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);
+Route::get('/events/category/{category}', [CategoryContoller::class, 'getEventsByCategory']);
 
 // Authenticated User Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,16 +35,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Event Management
     Route::middleware('permission:view events')->group(function () {
         Route::get('/events', [EventController::class, 'index']);
+        Route::get('/events/filter', [EventController::class, 'filter']);
+
     });
     Route::middleware('permission:create events')->group(function () {
         Route::post('/events', [EventController::class, 'store']);
-        Route::post('/categories', [CategoryContoller::class, 'store']);
     });
     Route::middleware('permission:manage events')->group(function () {
         Route::delete('/events/{event}', [EventController::class, 'destroy']);
         Route::patch('/events/{event}', [EventController::class, 'update']);
     });
     Route::middleware('permission:approve events')->group(function () {
+        Route::post('/categories', [CategoryContoller::class, 'store']);
         Route::patch('/events/approve/{event}', [EventApprovalController::class, 'approve']);
         Route::patch('/events/reject/{event}', [EventApprovalController::class, 'reject']);
     });

@@ -45,7 +45,7 @@ class BookingController extends Controller
     
         Notification::send($user, new EventNotification($event, 'booking'));
     
-        return response()->json(['message' => 'Booking successful', 'booking' => $booking], 200);
+        return response()->json(['message' => 'Booking successful , you will receive emil', 'booking' => $booking], 200);
     }    
 
     public function myBooked(Request $request)
@@ -76,6 +76,7 @@ class BookingController extends Controller
         $events = $bookings->map(function ($booking) {
             return [
                 'id' => $booking->event->id,
+                'image'=> $booking->event->image,
                 'title' => $booking->event->title,
                 'capacity' => $booking->event->capacity,
                 'bookings_count' => $booking->event->bookings()->count(),

@@ -13,45 +13,52 @@ class EventController extends Controller
     public function index()
     {
         $user = Auth::user();
-
+    
         if ($user->can('view events')) {
             if ($user->hasRole('admin')) {
-                $events = Event::with('category')->get();
+                // Fetch all events, ordered by latest
+                $events = Event::with('category')->orderBy('created_at', 'desc')->get();
             } else if ($user->hasRole('host')) {
-                $events = Event::with('category')->where('user_id', $user->id)->get();
-            } else if ($user->hasRole('attendee')) {
-                $events = Event::with('category')
-                    ->join('event_approvals', 'event_id', '=', 'event_approvals.event_id') // Join with event_approval table
-                    ->where('event_approvals.action', 'approved') // Filter for approved actions
-                    ->select('events.*') // Select the event columns
-                    ->get();
+                // Fetch host-specific events, ordered by latest
+                $events = Event::with('category')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get();
             }
-            
-
+            //  else if ($user->hasRole('attendee')) {
+            //     $events = Event::with('category')
+            //     ->whereHas('approvals', function ($query) {
+            //         $query->where('action', 'approved');
+            //     })->orderBy('created_at', 'desc')
+            //     ->get();
+            // }
+    
             return response()->json([
                 'message' => 'Events retrieved successfully',
                 'events' => $events,
             ], 200);
         }
-
+    
         return response()->json([
             'message' => 'Unauthorized access to events',
         ], 403);
     }
     public function events()
     {
-        $events = Event::with('category')
-            ->whereHas('approvals', function ($query) {
-                $query->where('action', 'approved');
-            })
-            ->get();
-
-        return response()->json([
-            'message' => 'Events retrieved successfully',
-            'events' => $events,
-        ], 200);
+        try {
+            $events = Event::with('category')
+                ->whereHas('approvals', function ($query) {
+                    $query->where('action', 'approved');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+            return response()->json([
+                'message' => 'Events retrieved successfully',
+                'events' => $events,
+            ], 200);
+        } catch (e) {
+            return response()->json(['error' => 'Failed to retrieve events'], 500);
+        }
     }
-    public function store(Request $request)
+        public function store(Request $request)
     {
         // Validate the incoming request data
         $data = $request->validate([

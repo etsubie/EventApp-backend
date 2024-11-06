@@ -16,7 +16,7 @@ class UserController extends Controller
     public function index(): JsonResponse
     {
         $user = Auth::user();
-
+    
         // Check if the user has permission to view users
         if ($user->can('view users')) {
             $users = User::with('roles')->get();
