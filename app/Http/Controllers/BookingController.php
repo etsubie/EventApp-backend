@@ -45,7 +45,7 @@ class BookingController extends Controller
     
         Notification::send($user, new EventNotification($event, 'booking'));
     
-        return response()->json(['message' => 'Booking successful , you will receive emil', 'booking' => $booking], 200);
+        return response()->json(['message' => 'Booking successful , you will receive email confirmation', 'booking' => $booking], 200);
     }    
 
     public function myBooked(Request $request)
@@ -53,10 +53,12 @@ class BookingController extends Controller
         // Get the authenticated user (host)
         $host = Auth::user();
     
-        // Fetch all bookings for this user and load the associated events
+        // Fetch all bookings for this user, load associated events, and order by latest
         $bookings = Booking::where('user_id', $host->id)
                            ->with('event')
+                           ->orderBy('created_at', 'desc')
                            ->get();
+    
         return response()->json($bookings, 200);
     }
     
@@ -65,18 +67,19 @@ class BookingController extends Controller
         // Get the authenticated user (the host)
         $host = Auth::user();
     
-        // Fetch bookings for events created by this host
-        $bookings = Booking::with('event') 
+        // Fetch bookings for events created by this host, ordered by latest
+        $bookings = Booking::with('event')
                            ->whereHas('event', function($query) use ($host) {
-                               $query->where('user_id', $host->id); 
+                               $query->where('user_id', $host->id);
                            })
+                           ->orderBy('created_at', 'desc')
                            ->get();
     
         // Map the bookings to include relevant event details
         $events = $bookings->map(function ($booking) {
             return [
                 'id' => $booking->event->id,
-                'image'=> $booking->event->image,
+                'image' => $booking->event->image,
                 'title' => $booking->event->title,
                 'capacity' => $booking->event->capacity,
                 'bookings_count' => $booking->event->bookings()->count(),
@@ -85,6 +88,6 @@ class BookingController extends Controller
         });
     
         return response()->json($events, 200);
-    }
+    }    
     
 }
